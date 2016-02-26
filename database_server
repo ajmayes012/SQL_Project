@@ -46,7 +46,7 @@ def server(host, port, cert, file=None):
     ssl_sock.sendall('Here comes my database.'.encode('ascii'))
 
     try:
-        ssl_sock.sendaall(q)
+        ssl_sock.sendall(q)
     except (socket.error, socket.gaierror) as e:
         print('Cannot send message {}'.format(e), file=sys.stderr)
         exit(1)
