@@ -1,14 +1,14 @@
-import argparse, socket, ssl, sys, pymysql
-table = pymysql.Connection(user="root", database="db")
+import argparse
+import socket
+import ssl
+import sys
+import sqlite3
 
+db = sqlite3.connect("clients")
+cursor = db.cursor()
+cursor.execute("SELECT * FROM Clients")
+q = cursor.fetchone()
 
-
-def data(table):
-    connection = table
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM Clients")
-    result = cursor.fetchone()
-    return str(result)
 
 
 
@@ -36,7 +36,7 @@ def server(host, port, cert, file=None):
     listening.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         listening.bind((host, port))
-    except socket.gaierror as e:
+    except socket.gaierror:
         raise
     listening.listen(1)
     print('Listening at interface {!r} and port {}'.format(host, port))
@@ -46,7 +46,7 @@ def server(host, port, cert, file=None):
     ssl_sock.sendall('Here comes my database.'.encode('ascii'))
 
     try:
-        ssl_sock.senddb(data(table.encode('ascii')))
+        ssl_sock.sendaall(q)
     except (socket.error, socket.gaierror) as e:
         print('Cannot send message {}'.format(e), file=sys.stderr)
         exit(1)
@@ -65,5 +65,5 @@ if __name__ == '__main__':
     if args.s:
         server(args.host, args.port, args.s, args.a)
     else:
-        client(args.host, args.port, args.a)
-        table.close()
+        client(args.host, args.port, args.a,)
+    db.close()
