@@ -2,12 +2,7 @@ import argparse
 import socket
 import ssl
 import sys
-import sqlite3
-
-db = sqlite3.connect("clients")
-cursor = db.cursor()
-cursor.execute("SELECT * FROM Clients")
-q = cursor.fetchone()
+from db_connect import db_query
 
 
 
@@ -46,7 +41,7 @@ def server(host, port, cert, file=None):
     ssl_sock.sendall('Here comes my database.'.encode('ascii'))
 
     try:
-        ssl_sock.sendall(q)
+        ssl_sock.sendall(db_query)
     except (socket.error, socket.gaierror) as e:
         print('Cannot send message {}'.format(e), file=sys.stderr)
         exit(1)
@@ -66,4 +61,4 @@ if __name__ == '__main__':
         server(args.host, args.port, args.s, args.a)
     else:
         client(args.host, args.port, args.a,)
-    db.close()
+  
