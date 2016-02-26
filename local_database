@@ -1,0 +1,40 @@
+import sqlite3
+connection = sqlite3.connect("Clients")
+
+cursor = connection.cursor()
+
+
+cursor.execute("""DROP TABLE clients;""")
+
+sql_command = """
+CREATE TABLE Clients (
+client_number INTEGER PRIMARY KEY,
+firstname VARCHAR(20),
+lastname VARCHAR(30),
+company CHAR(1),
+joining DATE,
+contact INTEGER );"""
+
+cursor.execute(sql_command)
+
+sql_command = """INSERT INTO Clients (client_number, firstname, lastname, company, contact)
+    VALUES (1, "John", "Johnon", "KLRC News", "444-333-4444");"""
+cursor.execute(sql_command)
+
+sql_command = """INSERT INTO Clients (client_number, firstname, lastname, company, contact)
+    VALUES (2, "Jack", "Smith", "Deputy", "123-453-7878");"""
+cursor.execute(sql_command)
+
+sql_command = """INSERT INTO Clients (client_number, firstname, lastname, company, contact)
+    VALUES (3, "John", "Brown", "Faytown Police Dept", "123-443-1234");"""
+cursor.execute(sql_command)
+
+
+cursor.execute("SELECT * FROM Clients")
+result = cursor.fetchall()
+for r in result:
+    print(r)
+
+
+connection.commit()
+connection.close()
