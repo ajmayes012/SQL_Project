@@ -1,0 +1,69 @@
+import argparse, socket, ssl, sys, pymysql
+table = pymysql.Connection(user="root", database="db")
+
+
+
+def data(table):
+    connection = table
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM Clients")
+    result = cursor.fetchone()
+    return str(result)
+
+
+
+def client(host, port, file=None):
+    purpose = ssl.Purpose.SERVER_AUTH
+    context = ssl.create_default_context(purpose, cafile=file)
+
+    raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    raw_sock.connect((host, port))
+    print('Asking for database "clients"')
+    ssl_sock = context.wrap_socket(raw_sock, server_hostname=host)
+    while True:
+        data = ssl_sock.recv(1024)
+        if not data:
+            break
+        print(repr(data))
+
+
+def server(host, port, cert, file=None):
+    purpose = ssl.Purpose.CLIENT_AUTH
+    context = ssl.create_default_context(purpose, cafile=file)
+    context.load_cert_chain(cert)
+
+    listening = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listening.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        listening.bind((host, port))
+    except socket.gaierror as e:
+        raise
+    listening.listen(1)
+    print('Listening at interface {!r} and port {}'.format(host, port))
+    raw_sock, address = listening.accept()
+    print('Connection from host {!r} and port {}'.format(*address))
+    ssl_sock = context.wrap_socket(raw_sock, server_side=True)
+    ssl_sock.sendall('Here comes my database.'.encode('ascii'))
+
+    try:
+        ssl_sock.senddb(data(table.encode('ascii')))
+    except (socket.error, socket.gaierror) as e:
+        print('Cannot send message {}'.format(e), file=sys.stderr)
+        exit(1)
+    ssl_sock.close()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Safe TLS client and server')
+    parser.add_argument('host', help='hostname or IP address')
+    parser.add_argument('port', type=int, help='TCP port number')
+    parser.add_argument('-a', metavar='file', default=None,
+                        help='authority: path to CA certificate PEM file')
+    parser.add_argument('-s', metavar='cert', default=None,
+                        help='run as server: path to server PEM file')
+    args = parser.parse_args()
+    if args.s:
+        server(args.host, args.port, args.s, args.a)
+    else:
+        client(args.host, args.port, args.a)
+        table.close()
